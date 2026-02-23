@@ -95,7 +95,7 @@ body {
   position: relative;
   width: min(100%, 460px);
   margin: 0 auto;
-  aspect-ratio: 9 / 14.5;
+  height: 650px; /* Fixed height instead of aspect ratio */
 }
 
 .card {

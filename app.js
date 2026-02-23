@@ -170,7 +170,7 @@ function resetDeck() {
 // -------------------
 function addCardEventListeners(card) {
   // Touch events
-  card.addEventListener('touchstart', handleTouchStart, {passive: true});
+  card.addEventListener('touchstart', handleTouchStart);
   card.addEventListener('touchmove', handleTouchMove, {passive: true});
   card.addEventListener('touchend', handleTouchEnd);
   
@@ -336,38 +336,34 @@ function handleSwipeAction(direction) {
   const currentCard = cardBeingDragged;
   if (!currentCard) return;
   
-  // Add animation class
-  currentCard.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+  // Use shared removal function
+  removeCardWithAnimation(currentCard, action);
+}
+
+function removeCardWithAnimation(card, action) {
+  // Add animation based on action
+  card.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
   
   switch(action) {
     case 'like':
-      currentCard.style.transform = 'translateX(150%) rotate(30deg)';
-      currentCard.style.opacity = '0';
+      card.style.transform = 'translateX(150%) rotate(30deg)';
       break;
     case 'nope':
-      currentCard.style.transform = 'translateX(-150%) rotate(-30deg)';
-      currentCard.style.opacity = '0';
+      card.style.transform = 'translateX(-150%) rotate(-30deg)';
       break;
     case 'superlike':
-      currentCard.style.transform = 'translateY(-150%) scale(0.8)';
-      currentCard.style.opacity = '0';
+      card.style.transform = 'translateY(-150%) scale(0.8)';
       break;
   }
+  card.style.opacity = '0';
   
-  // Remove card after animation
   setTimeout(() => {
-    if (currentCard && currentCard.parentNode) {
-      currentCard.remove();
+    if (card && card.parentNode) {
+      card.remove();
     }
-    
-    // Update cards array and re-index
     cards = Array.from(document.querySelectorAll('.card'));
-    currentCardIndex = 0; // Reset to 0 since we're removing from top
-    
-    // Update positions after card is removed
+    currentCardIndex = 0;
     updateCardPositions();
-    
-    // Check if deck is empty
     if (cards.length === 0) {
       showDeckEmpty();
     }
@@ -381,52 +377,7 @@ function resetCardPosition() {
   cardBeingDragged.style.opacity = '1';
 }
 
-function removeCard(action) {
-  if (currentCardIndex >= cards.length) return;
-  
-  const currentCard = cards[currentCardIndex];
-  
-  // Add animation class
-  currentCard.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
-  
-  switch(action) {
-    case 'like':
-      currentCard.style.transform = 'translateX(150%) rotate(30deg)';
-      currentCard.style.opacity = '0';
-      break;
-    case 'nope':
-      currentCard.style.transform = 'translateX(-150%) rotate(-30deg)';
-      currentCard.style.opacity = '0';
-      break;
-    case 'superlike':
-      currentCard.style.transform = 'translateY(-150%) scale(0.8)';
-      currentCard.style.opacity = '0';
-      break;
-  }
-  
-  // Remove card after animation
-  setTimeout(() => {
-    if (currentCard && currentCard.parentNode) {
-      currentCard.remove();
-    }
-    
-    // Update cards array to remove the deleted card
-    cards = Array.from(document.querySelectorAll('.card'));
-    
-    currentCardIndex++;
-    updateCardPositions();
-    
-    // Check if deck is empty - check both cards array and remaining visible cards
-    const remainingCards = cards.filter(card => card.style.display !== 'none');
-    if (remainingCards.length === 0 || currentCardIndex >= cards.length) {
-      showDeckEmpty();
-    }
-  }, 300);
-}
-
 function updateCardPositions() {
-  console.log(`updateCardPositions called: ${cards.length} cards, currentCardIndex: ${currentCardIndex}`);
-  
   cards.forEach((card, index) => {
     // Reset display property first
     card.style.display = '';
@@ -438,7 +389,6 @@ function updateCardPositions() {
       card.style.transform = 'translateY(0) scale(1)';
       card.style.pointerEvents = 'auto';
       card.style.opacity = '1';
-      console.log(`Card ${index} set as top card`);
     } else if (offset === 1) {
       // Second card - partially visible
       card.style.zIndex = 9;
@@ -528,12 +478,18 @@ function showDeckEmpty() {
       <div class="deck-empty__icon">🎉</div>
       <h2>You've seen all profiles!</h2>
       <p>You've gone through all the profiles in this deck.</p>
-      <button class="deck-empty__btn" onclick="resetDeck()">
+      <button class="deck-empty__btn">
         <span class="deck-empty__btn-icon">🔄</span>
         Start New Deck
       </button>
     </div>
   `;
+  
+  // Add event listener to restart button
+  const restartBtn = document.querySelector('.deck-empty__btn');
+  if (restartBtn) {
+    restartBtn.addEventListener('click', resetDeck);
+  }
 }
 
 // -------------------
@@ -628,42 +584,8 @@ function handleCardAction(action) {
   overlay.style.opacity = '0.9'; // Full opacity for button clicks
   currentCard.appendChild(overlay);
   
-  // Add visual feedback
-  currentCard.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
-  
-  switch(action) {
-    case 'like':
-      currentCard.style.transform = 'translateX(150%) rotate(30deg)';
-      currentCard.style.opacity = '0';
-      break;
-    case 'nope':
-      currentCard.style.transform = 'translateX(-150%) rotate(-30deg)';
-      currentCard.style.opacity = '0';
-      break;
-    case 'superlike':
-      currentCard.style.transform = 'translateY(-150%) scale(0.8)';
-      currentCard.style.opacity = '0';
-      break;
-  }
-  
-  // Remove card after animation
-  setTimeout(() => {
-    if (currentCard && currentCard.parentNode) {
-      currentCard.remove();
-    }
-    
-    // Update cards array and re-index
-    cards = Array.from(document.querySelectorAll('.card'));
-    currentCardIndex = 0; // Reset to 0 since we're removing from top
-    
-    // Update positions after card is removed
-    updateCardPositions();
-    
-    // Check if deck is empty
-    if (cards.length === 0) {
-      showDeckEmpty();
-    }
-  }, 300);
+  // Use shared removal function
+  removeCardWithAnimation(currentCard, action);
 }
 
 // Boot
