@@ -590,3 +590,17 @@ function handleCardAction(action) {
 
 // Boot
 resetDeck();
+
+// Export functions for test environment (Node.js require)
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    determineSwipeDirection,
+    generateProfiles,
+    createCard,
+    resetDeck,
+    removeCardWithAnimation,
+    showPhotoViewer,
+    handleDoubleTap,
+    closePhotoViewer,
+  };
+}
